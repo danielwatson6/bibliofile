@@ -5,12 +5,13 @@
 <h1>New book</h1>
 <hr>
 
-<form method="post" enctype="multipart/form-data" action="{{ upload_url }}" class="form-horizontal">
+<form method="post" enctype="multipart/form-data" action="{{ upload_url }}" class="form-horizontal" onsubmit="return validate_upload();">
 	
 	<div class="form-group">
 		<label class="control-label col-lg-2">Title:</label>
 		<div class="col-lg-4">
 			<input name="title" id="title" type="text" placeholder="Title..." class="form-control">
+			<span class="bibliofile-error" id="titleError"></span>
 		</div>
 	</div>
 	
@@ -18,6 +19,7 @@
 		<label class="control-label col-lg-2">Upload:</label>
 		<div class="col-lg-4">
 			<input name="blob" id="blob" type="file" class="form-control">
+			<span class="bibliofile-error" id="blobError"></span>
 		</div>
 	</div>
 	

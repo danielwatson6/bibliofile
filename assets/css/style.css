@@ -4,3 +4,9 @@
 	font-weight: bold;
 	font-size: 120%;
 }
+
+.bibliofile-error {
+	color: red;
+	font-weight: bold;
+	font-size: 90%;
+}
