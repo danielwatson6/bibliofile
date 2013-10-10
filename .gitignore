@@ -3,6 +3,11 @@
 # C extensions
 *.so
 
+# OS X
+.DS_Store
+Icon
+Icon?
+
 # Packages
 *.egg
 *.egg-info
