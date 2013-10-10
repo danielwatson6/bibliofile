@@ -1,4 +1,4 @@
-book-index
+BIBLIOFILE
 ==========
 
 Web application for book storage
