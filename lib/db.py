@@ -48,6 +48,10 @@ class AccountModel(Model):
     # Validation
     def valid_pw(self, pw):
         return self.pw_hash == self.__class__.hash_pw(pw)
+    
+    # Email validation
+    def valid_email(self, email):
+        return EMAIL_RE.match(email)
 
 # Model for blob handling
 class BlobModel(Model):
@@ -55,7 +59,7 @@ class BlobModel(Model):
 
 # NDB Property shortcuts that are
 # accessible directly from this module
-
+# [Note] this might need to be updated
 string = ndb.StringProperty
 integer = ndb.IntegerProperty
 double = ndb.FloatProperty

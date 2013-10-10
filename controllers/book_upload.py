@@ -7,7 +7,11 @@ class Book(UploadController):
 	# Associated Controller
 	default_class = BookController
 	
+	# On POST request
 	def create(self):
+		
+		# Get all params from the html form
 		data = self.get_data("title", "blob")
+		
 		if data["title"] and data["blob"]:
 			return data
