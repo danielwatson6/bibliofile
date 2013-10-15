@@ -2,6 +2,11 @@
 
 {% block content %}
 
-{{ resource }}
+<a href="{{ resource.serve_uri() }}" class="btn btn-primary bibliofile-corner-btn">Download</a>
+<a href="#" class="btn btn-primary pull-right bibliofile-corner-btn">Edit</a>
+<h1>{{ resource.title }}</h1>
+
+<hr>
+<a href="/books">« Back to book index</a>
 
 {% endblock %}

@@ -1,6 +1,8 @@
 from book import Book as BookController
 from controllers.core import UploadController
 
+from lib import utils
+
 class Book(UploadController):
 	r'/books/upload'
 	
@@ -14,4 +16,7 @@ class Book(UploadController):
 		data = self.get_data("title", "blob")
 		
 		if data["title"] and data["blob"]:
+			
+			# HTML-Safe
+			data["title"] = utils.escape(data["title"])
 			return data
