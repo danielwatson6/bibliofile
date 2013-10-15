@@ -1,6 +1,7 @@
 /* Custom styling goes in this file */
 
-.breadcrumb {
-	font-weight: bold;
-	font-size: 120%;
+.bibliofile-corner-btn {
+	margin-top: 20px;
+	margin-left: 10px;
+	float: right;
 }
