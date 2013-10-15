@@ -2,18 +2,25 @@
 
 {% block content %}
 
-<h1>Books</h1>
+<a href="/books/new" class="btn btn-primary bibliofile-corner-btn">New book</a>
+<h1>Book Index</h1>
 <hr>
 
-<ul>
-	{% for resource in resources %}
-	<li><a href="{{ resource.uri() }}">{{ resource.title }}</a></li>
-	{% endfor %}
-</ul>
+{% if resources.count() == 0 %}
+<b>No books found.</b>
+{% endif %}
 
+{% for resource in resources %}
+<div class="media">
+	<a href="{{ resource.uri() }}" class="pull-left">
+		<img class="media-object" src="/assets/img/pdf.png" alt="foo" width="90" height="90">
+	</a>
+	<div class="media-body">
+		<h3 class="media-heading">{{ resource.title }}</h3>
+		<p>{{ resource.small_description() }}</p>
+	</div>
+</div>
 <hr>
-<div class="breadcrumb"><a href="/">..</a></div>
-<div class="breadcrumb"><a href="/books/new">new</a></div>
-<hr>
+{% endfor %}
 
 {% endblock %}

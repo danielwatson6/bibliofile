@@ -6,6 +6,3 @@ class Book(BlobController):
 	
 	# Associated Model
 	model = BookModel
-	
-	def show(self, resource):
-		self.redirect('/books/serve/%s' % resource)
