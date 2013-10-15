@@ -5,3 +5,9 @@
 	margin-left: 10px;
 	float: right;
 }
+
+.bibliofile-error {
+	color: red;
+	font-weight: bold;
+	font-size: 90%;
+}
