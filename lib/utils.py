@@ -10,11 +10,8 @@ def html(jinja_env, filename, **params):
 	return jinja_env.get_template(filename).render(params)
 
 # Return an html-safe version of a string or list
-def escape(e):
-	if type(e) == str:
-		return cgi.escape(e, quote = True)
-	if type(e) == list:
-		return [cgi.escape(s, quote = True) for s in e]
+def escape(s):
+	return cgi.escape(s, quote = True)
 
 # Replace the string's newlines with html newlines
 def newlines(txt):
