@@ -5,8 +5,47 @@
 <a href="{{ resource.serve_uri() }}" class="btn btn-primary bibliofile-corner-btn">Download</a>
 <a href="#" class="btn btn-primary pull-right bibliofile-corner-btn">Edit</a>
 <h1>{{ resource.title }}</h1>
-
-<hr>
 <a href="/books">« Back to book index</a>
+<hr>
+
+<div class="row">
+	
+	<div class="col-lg-3 bibliofile-col">
+		<a href="{{ resource.book_img }}"><img src="{{ resource.book_img }}" class="img-thumbnail"></a>
+		<h4>About this book:</h4>
+		{% if resource.description %}
+		<p>{{ resource.description }}</p>
+		{% else %}
+		<i class="muted">There is no description.</i>
+		{% endif %}
+	</div>
+	
+	<div class="col-lg-3 bibliofile-col">
+		<a href="{{ resource.author_img }}"><img src="{{ resource.author_img }}" class="img-thumbnail"></a>
+		<h4>The author:</h4>
+		{% if resource.author_description %}
+		<p>{{ resource.author_description }}</p>
+		{% else %}
+		<i class="muted">There is no description.</i>
+		{% endif %}
+	</div>
+	
+	<div class="col-lg-3 bibliofile-col">
+		<h4>Info:</h4>
+		{% if resource.info_description %}
+		<p>{{ resource.info_description }}</p>
+		{% else %}
+		<i class="muted">There is no description.</i>
+		{% endif %}
+		<hr>
+		<a href="{{ resource.serve_uri() }}">
+			Download
+		</a>
+	</div>
+	
+	<div class="col-lg-3">
+	</div>
+	
+</div>
 
 {% endblock %}
