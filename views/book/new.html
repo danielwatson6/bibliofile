@@ -3,6 +3,7 @@
 {% block content %}
 
 <h1>New book</h1>
+<a href="/books">« Back to book index</a>
 <hr>
 
 <form method="post" enctype="multipart/form-data" action="{{ upload_url }}">
@@ -16,9 +17,5 @@
 	<button type="submit" class="btn btn-primary">Upload</button>
 	
 </form>
-
-<hr>
-<div class="breadcrumb"><a href="/books">..</a></div>
-<hr>
 
 {% endblock %}
