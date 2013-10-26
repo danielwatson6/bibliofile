@@ -11,8 +11,8 @@ class BookModel(db.BlobModel):
 	submitter = db.string(default = "Anonymus")
 	
 	# Dates
-	submitted = db.date(auto_now_add = True)
-	last_edit = db.date(auto_now_add = True) #TODO: fix this
+	submitted_at = db.date(auto_now_add = True)
+	last_edited_at = db.date(auto_now_add = True) #TODO: fix this
 	
 	# Descriptions
 	description = db.text(default = '')

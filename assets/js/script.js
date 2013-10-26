@@ -26,24 +26,24 @@ function validate_upload() {
 	var title = $('#title');
 	var blob  = $('#blob');
 	
-	title_test = title.val() != ''
-	blob_test = blob.val() != ''
-	extension_test =  test_extension(blob.val())
+	valid_title = title.val() !== ''
+	valid_blob = blob.val() !== ''
+	valid_extension =  validate_extension(blob.val())
 	
-	if (title_test && blob_test && extension_test) {
+	if (valid_title && valid_blob && valid_extension) {
 		return true;
 	}
 	
 	// Add error messages
-	if (!title_test) {
+	if (!valid_title) {
 		$('#titleError').html("Please add a title.");
 	} else {
 		$('#titleError').html("");
 	}
-	if (!blob_test) {
+	if (!valid_blob) {
 		$('#blobError').html("Please upload a file.");
 	} else {
-		if (!extension_test) {
+		if (!valid_extension) {
 			$('#blobError').html("Please select a file with a valid extension.");
 		} else {
 			$('#blobError').html("");
@@ -53,15 +53,11 @@ function validate_upload() {
 	return false;
 }
 
-function test_extension(s) {
-	if (s != undefined && s != '' && s != null) {
-		extension = s.split('.')[s.split('.').length-1];
-		for (var i = 0; i < EXTENSIONS.length; i++) {
-			if (EXTENSIONS[i] == extension) {
-				return true;
-			}
-		}
-		return false;
+// Check if the extension in the path is valid
+function validate_extension(s) {
+	if (s !== '') {
+		extension = s.split('.').pop()
+		return extension !== s && EXTENSIONS.indexOf(extension) !== -1;	
 	} else {
 		return false;
 	}
