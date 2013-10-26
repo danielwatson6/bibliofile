@@ -5,8 +5,9 @@
  * undefined value.
  **/
  
-// Extensions allowed in blob uploads 
-EXTENSIONS = ['pdf']
+// Extensions allowed in blob uploads
+// These are based on e-book formats
+EXTENSIONS = ['azw', 'azw1', 'azw4', 'epub', 'kf8', 'mobi', 'pdb', 'pdf', 'prc', 'tpz']
  
  
 !function (window, undefined) {
