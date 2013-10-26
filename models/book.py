@@ -1,4 +1,4 @@
-from lib import db
+from lib import db, utils
 
 # Book model
 class BookModel(db.BlobModel):
@@ -32,3 +32,7 @@ class BookModel(db.BlobModel):
 			return self.description[:max_len]
 		except:
 			return self.description
+	
+	# Size getter, but converts from bytes to human-readable size
+	def get_size(self):
+		return utils.file_size(self.size())
