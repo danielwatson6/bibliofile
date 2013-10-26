@@ -13,11 +13,15 @@
 {% for resource in resources %}
 <div class="media">
 	<a href="{{ resource.uri() }}" class="pull-left">
-		<img class="media-object" src="http://i.imgur.com/HC4JaHw.png" alt="foo" width="90" height="90">
+		<img src="{{ resource.book_img }}" class="media-object img-thumbnail" width="128" height="128">
 	</a>
 	<div class="media-body">
-		<h3 class="media-heading">{{ resource.title }}</h3>
+		<a href="{{ resource.uri() }}" class="plain"><h3 class="media-heading">{{ resource.title }}</h3></a>
+		{% if resource.description %}
 		<p>{{ resource.small_description() }}</p>
+		{% else %}
+		<i class="muted">There is no description.</i>
+		{% endif %}
 	</div>
 </div>
 <hr>

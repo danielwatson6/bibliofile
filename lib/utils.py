@@ -57,3 +57,9 @@ def lowercase(name):
 def uppercase(name):
 	return filter(str.isalnum, s.title())
 
+# Human-readable file size from bytes
+def file_size(num):
+    for x in ['bytes','KB','MB','GB','TB']:
+        if num < 1024.0:
+            return "%3.1f %s" % (num, x)
+        num /= 1024.0

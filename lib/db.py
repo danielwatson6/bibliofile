@@ -56,6 +56,14 @@ class AccountModel(Model):
 # Model for blob handling
 class BlobModel(Model):
     blob_key = ndb.StringProperty(required = True)
+    
+    def filename(self):
+        obj = blobstore.BlobInfo.get(self.blob_key)
+        return obj.filename
+    
+    def size(self):
+        obj = blobstore.BlobInfo.get(self.blob_key)
+        return obj.size
 
 # NDB Property shortcuts that are
 # accessible directly from this module
