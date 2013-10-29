@@ -1,5 +1,9 @@
 *.py[cod]
 
+# Abstractions
+assets
+.sass-cache
+
 # Images
 *.png
 img
