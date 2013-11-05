@@ -1,30 +1,27 @@
 {% extends "base.html" %}
-
 {% block content %}
-
-<a href="/books/new" class="btn btn-primary bibliofile-corner-btn">New book</a>
+<a class='btn btn-primary bibliofile-corner-btn' href='/books/new'>New book</a>
 <h1>Book Index</h1>
 <hr>
-
 {% if resources.count() == 0 %}
 <b>No books found.</b>
 {% endif %}
-
 {% for resource in resources %}
-<div class="media">
-	<a href="{{ resource.uri() }}" class="pull-left">
-		<img src="{{ resource.book_img }}" class="media-object img-thumbnail" width="128" height="128">
-	</a>
-	<div class="media-body">
-		<a href="{{ resource.uri() }}" class="plain"><h3 class="media-heading">{{ resource.title }}</h3></a>
-		{% if resource.description %}
-		<p>{{ resource.small_description() }}</p>
-		{% else %}
-		<i class="muted">There is no description.</i>
-		{% endif %}
-	</div>
+<div class='media'>
+  <a class='pull-left' href='{{ resource.uri() }}'>
+    <img class='media-object img-thumbnail' height='128' src='{{ resource.book_img }}' width='128'>
+  </a>
+  <div class='media-body'>
+    <a class='plain' href='{{ resource.uri() }}'>
+      <h3 class='media-heading'></h3>
+    </a>
+    {% if resource.description %}
+    <p>{{ resource.small_description() }}</p>
+    {% else %}
+    <i class='muted'>There is no description.</i>
+    {% endif %}
+  </div>
 </div>
 <hr>
 {% endfor %}
-
 {% endblock %}

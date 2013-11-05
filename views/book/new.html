@@ -1,35 +1,27 @@
 {% extends "base.html" %}
-
 {% block content %}
-
 <h1>New book</h1>
-<a href="/books">« Back to book index</a>
+<a href='/books'>« Back to book index</a>
 <hr>
-
-<form method="post" enctype="multipart/form-data" action="{{ upload_url }}" class="form-horizontal" onsubmit="return validate_upload();">
-	
-	<div class="form-group">
-		<label class="control-label col-lg-2">Title:</label>
-		<div class="col-lg-4">
-			<input name="title" id="title" type="text" placeholder="Title..." class="form-control">
-			<span class="bibliofile-error" id="titleError"></span>
-		</div>
-	</div>
-	
-	<div class="form-group">
-		<label class="control-label col-lg-2">Upload:</label>
-		<div class="col-lg-4">
-			<input name="blob" id="blob" type="file" class="form-control">
-			<span class="bibliofile-error" id="blobError"></span>
-		</div>
-	</div>
-	
-	<div class="form-group">
-		<div class="col-lg-4 col-lg-offset-2">
-			<button type="submit" class="btn btn-primary">Upload</button>
-		</div>
-	</div>
-	
+<form action='{{ upload_url }}' class='form-horizontal' enctype='multipart/form-data' method='post' onsubmit='return validate_upload();'>
+  <div class='form-group'>
+    <label class='control-label col-lg-2'>Title:</label>
+    <div class='col-lg-4'>
+      <input class='form-control' id='title' name='title' placeholder='Title...' type='text'>
+      <span class='bibliofile-error' id='titleError'></span>
+    </div>
+  </div>
+  <div class='form-group'>
+    <label class='control-label col-lg-2'>Upload:</label>
+    <div class='col-lg-4'>
+      <input class='form-control' id='blob' name='blob' type='file'>
+      <span class='bibliofile-error' id='blobError'></span>
+    </div>
+  </div>
+  <div class='form-group'>
+    <div class='col-lg-4 col-lg-offset-2'>
+      <button class='btn btn-primary' type='submit'>Upload</button>
+    </div>
+  </div>
 </form>
-
 {% endblock %}
