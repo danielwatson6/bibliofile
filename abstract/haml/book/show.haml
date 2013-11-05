@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+%a.btn.btn-primary.bibliofile-corner-btn{href: "{{ resource.serve_uri() }}"} Download
+%a.btn.btn-primary.pull-right.bibliofile-corner-btn{href: "#"} Edit
+%h1 {{ resource.title }}
+%a{href: "/books"} « Back to book index
+%hr/
+.row
+  .col-lg-3.bibliofile-col
+    %a{href: "{{ resource.book_img }}"}
+      %img.img-thumbnail{src: "{{ resource.book_img }}"}/
+    %h4 About this book:
+    {% if resource.description %}
+    %p {{ resource.description }}
+    {% else %}
+    %i.muted There is no description.
+    {% endif %}
+  .col-lg-3.bibliofile-col
+    %a{href: "{{ resource.author_img }}"}
+      %img.img-thumbnail{src: "{{ resource.author_img }}"}/
+    %h4 The author:
+    {% if resource.author_description %}
+    %p {{ resource.author_description }}
+    {% else %}
+    %i.muted There is no description.
+    {% endif %}
+  .col-lg-3.bibliofile-col
+    %h4 Info:
+    {% if resource.info_description %}
+    %p {{ resource.info_description }}
+    {% else %}
+    %i.muted There is no description.
+    {% endif %}
+    %hr/
+    %a{href: "{{ resource.serve_uri() }}"}
+      Download
+    %span.muted ({{ resource.get_size() }})
+  .col-lg-3
+{% endblock %}
