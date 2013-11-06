@@ -35,22 +35,16 @@
   %hr/
   
   .form-group
-    %label.control-label.col-lg-2 Book description:
+    %label.control-label.col-lg-2 Book summary:
     .col-lg-4
       %textarea#description.form-control{name: "description", placeholder: "Description"}
       %span#error3.bibliofile-error
   
   .form-group
-    %label.control-label.col-lg-2 Book information:
-    .col-lg-4
-      %textarea#info_description.form-control{name: "info_description", placeholder: "Book information"}
-      %span#error4.bibliofile-error
-  
-  .form-group
     %label.control-label.col-lg-2 Author information:
     .col-lg-4
       %textarea#author_description.form-control{name: "author_description", placeholder: "Author information"}
-      %span#error5.bibliofile-error
+      %span#error4.bibliofile-error
   
   %br/
   %h3 Files:
@@ -60,7 +54,7 @@
     %label.control-label.col-lg-2 Book upload:
     .col-lg-4
       %input#blob.form-control{name: "blob", type: "file"}/
-      %span#error6.blob-error.bibliofile-error
+      %span#error5.blob-error.bibliofile-error
   
   %br/
   
