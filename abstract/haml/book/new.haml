@@ -1,21 +1,73 @@
 {% extends "base.html" %}
 
 {% block content %}
-%h1 New book
+
+%h1 Upload a book
 %a{href: "/books"} « Back to book index
-%hr/
+%br/
+
 %form.form-horizontal{action: "{{ upload_url }}", enctype: "multipart/form-data", method: "post", onsubmit: "return validate_upload();"}
+  
+  %br/
+  %h3 General information:
+  %hr/
+  
   .form-group
     %label.control-label.col-lg-2 Title:
     .col-lg-4
-      %input#title.form-control{name: "title", placeholder: "Title...", type: "text"}/
-      %span#titleError.bibliofile-error
+      %input#title.form-control{name: "title", placeholder: "Title", type: "text"}/
+      %span#error0.bibliofile-error
+  
   .form-group
-    %label.control-label.col-lg-2 Upload:
+    %label.control-label.col-lg-2 Author:
+    .col-lg-4
+      %input#author.form-control{name: "author", placeholder: "Author", type: "text"}/
+      %span#error1.bibliofile-error
+  
+  .form-group
+    %label.control-label.col-lg-2 Genre:
+    .col-lg-4
+      %input#genre.form-control{name: "genre", placeholder: "Genre", type: "text"}/
+      %span#error2.bibliofile-error
+  
+  %br/
+  %h3 Descriptions:
+  %hr/
+  
+  .form-group
+    %label.control-label.col-lg-2 Book description:
+    .col-lg-4
+      %textarea#description.form-control{name: "description", placeholder: "Description"}
+      %span#error3.bibliofile-error
+  
+  .form-group
+    %label.control-label.col-lg-2 Book information:
+    .col-lg-4
+      %textarea#info_description.form-control{name: "info_description", placeholder: "Book information"}
+      %span#error4.bibliofile-error
+  
+  .form-group
+    %label.control-label.col-lg-2 Author information:
+    .col-lg-4
+      %textarea#author_description.form-control{name: "author_description", placeholder: "Author information"}
+      %span#error5.bibliofile-error
+  
+  %br/
+  %h3 Files:
+  %hr/
+  
+  .form-group
+    %label.control-label.col-lg-2 Book upload:
     .col-lg-4
       %input#blob.form-control{name: "blob", type: "file"}/
-      %span#blobError.bibliofile-error
+      %span#error6.blob-error.bibliofile-error
+  
+  %br/
+  
   .form-group
     .col-lg-4.col-lg-offset-2
-      %button.btn.btn-primary{type: "submit"} Upload
+      %button.btn.btn-primary{type: "submit"} Publish
+  
+  %br/
+
 {% endblock %}

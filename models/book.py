@@ -8,7 +8,8 @@ class BookModel(db.BlobModel):
 	# Main data
 	title = db.string(required = True)
 	author = db.string(default = "Unknown")
-	submitter = db.string(default = "Anonymus")
+	submitter = db.string(default = "Unknown")
+	genre = db.string(default = "Unknown")
 	
 	# Dates
 	submitted_at = db.date(auto_now_add = True)
