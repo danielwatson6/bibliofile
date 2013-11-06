@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+%h1 New book
+%a{href: "/books"} « Back to book index
+%hr/
+%form.form-horizontal{action: "{{ upload_url }}", enctype: "multipart/form-data", method: "post", onsubmit: "return validate_upload();"}
+  .form-group
+    %label.control-label.col-lg-2 Title:
+    .col-lg-4
+      %input#title.form-control{name: "title", placeholder: "Title...", type: "text"}/
+      %span#titleError.bibliofile-error
+  .form-group
+    %label.control-label.col-lg-2 Upload:
+    .col-lg-4
+      %input#blob.form-control{name: "blob", type: "file"}/
+      %span#blobError.bibliofile-error
+  .form-group
+    .col-lg-4.col-lg-offset-2
+      %button.btn.btn-primary{type: "submit"} Upload
+{% endblock %}
