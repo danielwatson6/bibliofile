@@ -2,13 +2,16 @@
 ## Client-side js (CoffeeScript)
 ##
 
-
-# Allowed extensions for uploads
-EXTENSIONS = ['azw', 'azw1', 'azw4', 'epub', 'kf8', 'mobi', 'pdb', 'pdf', 'prc', 'tpz']
-
-
-# Upload validation for client-side
-validate_upload = () ->
+# Document-ready function
+ready = ->
+	
+	
+# Getter for all of the allowed extensions
+get_extensions = ->
+	['azw', 'azw1', 'azw4', 'epub', 'kf8', 'mobi', 'pdb', 'pdf', 'prc', 'tpz']
+	
+# Method called in template on submit
+validate_upload = ->
 	title = $('#title')
 	blob  = $('#blob')
 	
@@ -33,21 +36,16 @@ validate_upload = () ->
 	
 	return false;
 
-# Check if the extension in the path is valid
-validate_extension = () ->
+validate_extension = (s) ->
 	if s isnt ''
 		extension = s.split('.').pop()
-		return extension isnt s and EXTENSIONS.indexOf(extension) isnt -1
+		return extension isnt s and get_extensions().indexOf(extension) isnt -1
 	return false
 
 
-# Document-ready
-ready = () ->
+# Call the document-ready function
+$(document).ready(ready)
 
-# Main script
-main = (window) ->
-	$(document.ready(ready))
-	return		# Void
-
-# Call
-main(window.jQuery)
+# Global
+root = exports ? this
+root.validate_upload = -> validate_upload()
