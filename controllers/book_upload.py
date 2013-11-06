@@ -3,6 +3,10 @@ from controllers.core import UploadController
 
 from lib import utils
 
+
+BOOK_EXTENSIONS = ['azw', 'azw1', 'azw4', 'epub', 'kf8', 'mobi', 'pdb', 'pdf', 'prc', 'tpz']
+IMG_EXTENSIONS = ['jpg', 'jpeg', 'gif', 'png']
+
 class Book(UploadController):
 	r'/books/upload'
 	
@@ -20,13 +24,20 @@ class Book(UploadController):
 		                     "description",
 		                     "author_description")
 		
-		if data["title"] and data["blob"] and data["author"] and data["genre"] \
-		   and data["description"] and data["author_description"]:
-			
-			# HTML-Safe
-			data["title"] = utils.escape(data["title"])
-			data["author"] = utils.escape(data["author"])
-			data["genre"] = utils.escape(data["genre"])
-			data["description"] = utils.escape(data["description"])
-			data["author_description"] = utils.escape(data["author_description"])
+		fields = [data["title"], data["author"], data["genre"],
+				  data["description"], data["author_description"],
+				  data["blob"]]
+		
+		if self.validate(fields, data["blob"]):
+			for f in fields:
+				f = utils.escape(f) # HTML-Safe
 			return data
+	
+	# Validate form
+	def validate(self, fields, blob):
+		for i in fields:
+			if not i: return
+		try:
+			return blob.split('.')[-1] in BOOK_EXTENSIONS
+		except IndexError: return
+	
