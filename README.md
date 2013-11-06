@@ -1,4 +1,4 @@
 BIBLIOFILE
 ==========
 
-Web application for book storage
+E-Book sharing web application
