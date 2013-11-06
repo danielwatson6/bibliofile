@@ -19,7 +19,6 @@ validate_upload = ->
 			  $('#author'),
 			  $('#genre'),
 			  $('#description'),
-			  $('#info_description'),
 			  $('#author_description'),
 			  $('#blob')]
 	
@@ -39,7 +38,7 @@ validate_upload = ->
 	valid_extension = validate_extension(blob.val(), book_extensions)
 	
 	# Go if no errors are found
-	return true if errors == ['' for i in range] and valid_extension
+	return true if (errors[i] == '' for i in range) and valid_extension
 	
 	
 	# If not, send errors back
