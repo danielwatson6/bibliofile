@@ -37,7 +37,6 @@ class Book(UploadController):
 	def validate(self, fields, blob):
 		for i in fields:
 			if not i: return
-		try:
-			return blob.split('.')[-1] in BOOK_EXTENSIONS
-		except IndexError: return
+		# TODO: extensions
+		return True
 	
