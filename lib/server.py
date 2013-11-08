@@ -228,7 +228,7 @@ class BaseController(webapp2.RequestHandler):
 	
 	# Add arguments to consider when rendering the page	
 	def send_data(self, data = {}, **kw):
-		self._params = dict(dict(kw).items() + data.items())
+		self._params = dict(self._params.items() + dict(kw).items() + data.items())
 
 # Upload default controller
 class BaseUploadController(blobstore_handlers.BlobstoreUploadHandler):
