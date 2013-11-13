@@ -14,50 +14,58 @@ img_extensions = ['jpg', 'jpeg', 'gif', 'png']
 # Method called in template on submit
 validate_upload = ->
 	
-	# Regular fields
-	fields = [$('#title'),
-			  $('#author'),
-			  $('#genre'),
-			  $('#description'),
-			  $('#author_description'),
-			  $('#blob')]
+	# Default fields
+	fields = ['#title',
+			  '#author',
+			  '#genre',
+			  '#description',
+			  '#author_description',
+			  '#blob']
 	
 	# Special fields
-	blob = $('#blob')
+	blob_field = '#blob'
 	
-	# Check if the regular fields are empty
-	range = [0...fields.length]
+	# Check if the default fields are empty
+	# TODO: CHANGE TO DICTS WITH ERROR IDS
 	errors = []
-	for i in range
-		if fields[i].val() == ''
-			errors[i] = "This field is empty."
-		else
-			errors[i] = ''
+	
+	for f in fields
+		errors.push(validate_field(f))
 	
 	# Check if blob is okay
-	valid_extension = validate_extension(blob.val(), book_extensions)
+	valid_extension = validate_extension(blob_field, book_extensions)
 	
 	# Go if no errors are found
-	return true if (errors[i] == '' for i in range) and valid_extension
+	return (e == '' for e in errors) and valid_extension
 	
 	
 	# If not, send errors back
-	$('#error'+i).html(errors[i]) for i in range
+	# TODO: UPDATE THIS LINE
+	$('#error'+i).html(errors[i]) for i in [0...fields.length]
 	
-	if blob.val() isnt ''
-		$('.blob-error').html('')
+	if $(blob_field).val() isnt ''
+		$('#blob-error').html('')
 		unless valid_extension
-			$('.blob-error').html("Please select a file with a valid extension.")
+			$('#blob-error').html("Please select a file with a valid extension.")
 	
 	return false
 
 
-# Given a string and a list of extensions,
+# Given an id and a list of extensions,
 # return if it is considered a valid file
-validate_extension = (s, extension_list) ->
-	return false if s == ''
+validate_extension = (b, extension_list) ->
+	s = $(b).val()
+	if s == ''
+		return false
 	extension = s.split('.').pop()
 	return extension isnt s and extension_list.indexOf(extension) isnt -1
+
+
+# Given an id, return error message if necessary
+validate_field = (f) ->
+	if $(f).val() == ''
+		return "This field is empty"
+	return ''
 
 
 # Call the document-ready function
