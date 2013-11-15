@@ -2,6 +2,7 @@
 ## Client-side js (CoffeeScript)
 ##
 
+
 # Document-ready function
 ready = ->
 	#
@@ -26,7 +27,6 @@ validate_upload = ->
 	blob_field = '#blob'
 	
 	# Check if the default fields are empty
-	# TODO: CHANGE TO DICTS WITH ERROR IDS
 	errors = []
 	
 	for f in fields
@@ -36,13 +36,13 @@ validate_upload = ->
 	valid_extension = validate_extension(blob_field, book_extensions)
 	
 	# Go if no errors are found
-	return (e == '' for e in errors) and valid_extension
+	if (e == '' for e in errors) and valid_extension
+		return true 
 	
+	# If not, continue
+	$(f + '-error').html(errors.shift()) for f in fields 
 	
-	# If not, send errors back
-	# TODO: UPDATE THIS LINE
-	$('#error'+i).html(errors[i]) for i in [0...fields.length]
-	
+	# Blob error
 	if $(blob_field).val() isnt ''
 		$('#blob-error').html('')
 		unless valid_extension
@@ -55,10 +55,8 @@ validate_upload = ->
 # return if it is considered a valid file
 validate_extension = (b, extension_list) ->
 	s = $(b).val()
-	if s == ''
-		return false
 	extension = s.split('.').pop()
-	return extension isnt s and extension_list.indexOf(extension) isnt -1
+	return s != '' and extension isnt s and extension_list.indexOf(extension) isnt -1
 
 
 # Given an id, return error message if necessary
