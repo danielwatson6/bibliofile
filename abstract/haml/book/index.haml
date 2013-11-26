@@ -15,11 +15,10 @@
   .media-body
     %a.plain{href: "{{ resource.uri() }}"}
       %h3.media-heading 
-    {% if resource.description %}
+    %p
+      %b {{ resource.title }}
+      %span - by {{ resource.author }}
     %p {{ resource.small_description() }}
-    {% else %}
-    %i.muted There is no description.
-    {% endif %}
 %hr/
 {% endfor %}
 

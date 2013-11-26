@@ -228,7 +228,7 @@ class BaseController(webapp2.RequestHandler):
 	
 	# Add arguments to consider when rendering the page	
 	def send_data(self, data = {}, **kw):
-		self._params = dict(dict(kw).items() + data.items())
+		self._params = dict(self._params.items() + dict(kw).items() + data.items())
 
 # Upload default controller
 class BaseUploadController(blobstore_handlers.BlobstoreUploadHandler):
@@ -284,6 +284,12 @@ class ModelController(BaseController):
 	# Model that the class supports
 	model = None
 	
+	# Custom-controlling
+	controls_create_success = False
+	controls_create_fail = False
+	controls_edit_success = False
+	controls_edit_fail = False
+	
 	# Handle GET requests
 	def get(self, *a):
 		
@@ -308,11 +314,11 @@ class ModelController(BaseController):
 		
 		# Check if successful
 		c = self.create()
-		if c:
+		if c and self.controls_create_success:
 			new_entity = self.model(** c)
 			new_entity.put()
 			self.redirect('/%ss/%s' % (self._name, new_entity.key.id()))
-		else:
+		elif self.controls_create_fail:
 			self.new()
 			self.render_appropriate(** self._params)
 	
@@ -402,7 +408,7 @@ class UploadController(BaseUploadController, ModelController):
 		
 		# Check if successful
 		c = self.create()
-		if c:
+		if c and self.controls_create_success:
 			
 			# Try to upload
 			upload = self.upload()
@@ -422,7 +428,8 @@ class UploadController(BaseUploadController, ModelController):
 				self.redirect('/%ss/new' % self._name)
 		
 		# Bounce back if form did not pass
-		else:
+		elif not self.controls_create_fail:
+			logging.info("still here")
 			self.redirect('/%ss/new' % self._name)
 
 # Upload class for blob-serving controllers
