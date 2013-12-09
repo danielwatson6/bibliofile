@@ -12,13 +12,13 @@ class Model(ndb.Model):
     # Get all entities from the class
     @classmethod
     def all(cls, max = None):
-    	if max:
-    		return cls.query().fetch(20)
-    	return cls.query()
+        if max:
+            return cls.query().fetch(20)
+        return cls.query()
     
     # Destroy the entity from the database
     def destroy(self):
-    	self.key.delete()
+        self.key.delete()
     
     # Get an entity's URI
     def uri(self):
@@ -33,25 +33,31 @@ class Model(ndb.Model):
     # From class, create a new entity
     @classmethod
     def create(cls, *a, **kw):
-    	new_model = cls(*a, **kw)
-    	new_model.put()
-    	return new_model
+        new_model = cls(*a, **kw)
+        new_model.put()
+        return new_model
 
 # Model for users
 class AccountModel(Model):
     
+    # Default properties
+    email = db.string(required = True)
+    pw_hash = db.string(required = True)
+    
     # Default paswword hashing
-    @classmethod
-    def hash_pw(cls, pw):
+    # Override!
+    @staticmethod
+    def hash_pw(pw):
         return hashlib.md5(pw).hexdigest()
     
-    # Validation
-    def valid_pw(self, pw):
-        return self.pw_hash == self.__class__.hash_pw(pw)
-    
-    # Email validation
-    def valid_email(self, email):
+    # Email comparation with regex
+    @staticmethod
+    def validate_email(email):
         return EMAIL_RE.match(email)
+    
+    # Input password == account password?
+    def valid_password(self, pw):
+        return self.pw_hash == self.__class__.hash_pw(pw)
 
 # Model for blob handling
 class BlobModel(Model):
@@ -61,6 +67,7 @@ class BlobModel(Model):
         obj = blobstore.BlobInfo.get(self.blob_key)
         return obj.filename
     
+    # File size in bytes
     def size(self):
         obj = blobstore.BlobInfo.get(self.blob_key)
         return obj.size
@@ -81,3 +88,4 @@ function = ndb.ComputedProperty
 json = ndb.JsonProperty
 pickle = ndb.PickleProperty
 blob_key = blobstore.BlobReferenceProperty
+

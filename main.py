@@ -1,21 +1,20 @@
 import controllers
 
-from lib.server import Application
+from lib import server
 
-#
-# This is the main script for the application.
-# It simply consists of an application instance
-# that maps all of the controllers (arguments for
-# the constructor).
-# 
-# The default argument simply takes all regular
-# controllers to the main application.
-# If you don't want all of the existing controllers
-# in the application, import all the ones to be in,
-# and instead of having the default argument.
-# as argument, add all of the controllers as arguments.
-# You may also include as arguments other controllers
-# before the default argument.
-#
 
-app = Application(*controllers.all_classes())
+# Fetch all controllers
+app = server.Application(controllers.all_classes())
+
+# Jinja templates options
+app.set_jinja_options(
+    block_start_string = '{%',
+    block_end_string = '%}',
+    variable_start_string = '{{',
+    variable_end_string = '}}',
+    comment_start_string = '{#',
+    comment_end_string = '#}'
+)
+
+
+app.initialize(debug = True)
