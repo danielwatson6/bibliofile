@@ -1,5 +1,10 @@
 from lib import db, utils
 
+import logging
+
+BOOK_EXTENSIONS = ['azw', 'azw1', 'azw4', 'epub', 'kf8', 'mobi', 'pdb', 'pdf', 'prc', 'tpz']
+IMG_EXTENSIONS = ['jpg', 'jpeg', 'gif', 'png']
+
 # Book model
 class BookModel(db.BlobModel):
 	
@@ -25,6 +30,36 @@ class BookModel(db.BlobModel):
 	
 	
 	### Functions
+	
+	# Validate form
+	@classmethod
+	def invalid_form(cls, fields, blob):
+		errors = []
+		blob_error = "This field is empty."
+		
+		# All fields must have some content
+		n = 0
+		for i in fields:
+			if not i or str(i) == '':
+				errors.append(n)
+			n += 1
+		
+		# Blob extension
+		if blob:
+			try:
+				filename = blob.split('filename="')[1]
+				filename = filename.split('"')[0]
+				extension = filename.split('.')[-1]
+				if not extension in BOOK_EXTENSIONS:
+					blob_error = "Please select a file with a valid extension."
+				else:
+					blob_error = None
+			except IndexError:
+				blob_error = "The server has rejected this file."
+		
+		if not (errors == [] and not blob_error):
+			error_str = str(errors)[1:-1].replace(' ','')
+			return (error_str, blob_error)
 	
 	# For rendering purposes
 	def small_description(self, max_len = 300):

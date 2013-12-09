@@ -41,8 +41,8 @@ class Model(ndb.Model):
 class AccountModel(Model):
     
     # Default properties
-    email = db.string(required = True)
-    pw_hash = db.string(required = True)
+    email = ndb.StringProperty(required = True)
+    pw_hash = ndb.StringProperty(required = True)
     
     # Default paswword hashing
     # Override!
