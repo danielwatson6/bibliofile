@@ -1,12 +1,3 @@
-##
-## Client-side js (CoffeeScript)
-##
-
-
-# Document-ready function
-ready = ->
-	#
-
 # Extension collections
 book_extensions = ['azw', 'azw1', 'azw4', 'epub', 'kf8', 'mobi', 'pdb', 'pdf', 'prc', 'tpz']
 img_extensions = ['jpg', 'jpeg', 'gif', 'png']
@@ -65,11 +56,6 @@ validate_field = (f) ->
 		return "This field is empty"
 	return ''
 
-
-# Call the document-ready function
-$(document).ready(ready)
-
 # Global variables
 root = exports ? this
 root.validate_upload = -> validate_upload()
-
