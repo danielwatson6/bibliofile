@@ -12,31 +12,28 @@ class Book(UploadController):
 	# Associated Controller
 	default_class = BookController
 	
-	# Custom actions in create() failure
-	controls_create_fail = True
-	
 	# On POST request
 	def create(self):
 		
 		# Get all params from the html form
 		data = self.get_data("title",
-		                     "blob",
 		                     "author",
 		                     "genre",
 		                     "description",
-		                     "author_description")
+		                     "author_description",
+		                     "blob")
 		
-		fields = [data["title"], data["author"], data["genre"],
-				  data["description"], data["author_description"]]
+		fields = [(BookModel.title, data["title"]),
+				  (BookModel.author, data["author"]),
+				  (BookModel.genre, data["genre"]),
+				  (BookModel.description, data["description"]),
+				  (BookModel.author_description, data["author_description"]),
+				  (BookModel.blob_key, data["blob"])]
 		
-		invalid_form = BookModel.invalid_form(fields, data["blob"])
+		valid_form = BookModel.valid_form(fields, data["blob"])
 		
-		if not invalid_form:
-			for f in fields:
-				f = utils.escape(f) # HTML-Safe
+		if valid_form:
+			# HTML-safe
+			for key in data:
+				data[key] = utils.escape(data[key])
 			return data
-		else:
-			self.redirect('/books/new')
-	
-	
-
