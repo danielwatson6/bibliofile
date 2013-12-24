@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+%h1 Change info for "{{ resource.title }}"
+%a{href: "/books"} « Back to book index
+%br/
+%br/
+
+%noscript
+  %div.alert.alert-warning
+    %b Tip:
+    %span you should
+    %b enable JavaScript
+    %span in order to avoid losing data!
+
+%form.form-horizontal{action: "{{ upload_url }}", enctype: "multipart/form-data", method: "post", onsubmit: "return validate_upload();"}
+  
+  %h3 General information:
+  %hr/
+  
+  .form-group
+    %label.control-label.col-lg-2 Title:
+    .col-lg-4
+      %input#title.form-control{name: "title", value: "{{ resource.title }}", placeholder: "Title", type: "text"}/
+      %span#title-error.bibliofile-error {{ error0 }}
+  
+  .form-group
+    %label.control-label.col-lg-2 Author:
+    .col-lg-4
+      %input#author.form-control{name: "author", value: "{{ resource.author }}", placeholder: "Author", type: "text"}/
+      %span#author-error.bibliofile-error {{ error1 }}
+  
+  .form-group
+    %label.control-label.col-lg-2 Genre:
+    .col-lg-4
+      %input#genre.form-control{name: "genre", value: "{{ resource.genre }}", placeholder: "Genre", type: "text"}/
+      %span#genre-error.bibliofile-error {{ error2 }}
+  
+  %br/
+  %h3 Descriptions:
+  %hr/
+  
+  .form-group
+    %label.control-label.col-lg-2 Book summary:
+    .col-lg-4
+      %textarea#description.form-control{name: "description", value: "{{ resource.description }}", placeholder: "Description"}
+      %span#description-error.bibliofile-error {{ error3 }}
+  
+  .form-group
+    %label.control-label.col-lg-2 Author information:
+    .col-lg-4
+      %textarea#author_description.form-control{name: "author_description", value: "{{ resource.author_description }}", placeholder: "Author information"}
+      %span#author_description-error.bibliofile-error {{ error4 }}
+  
+  %br/
+  
+  .form-group
+    .col-lg-4.col-lg-offset-2
+      %button.btn.btn-primary{type: "submit"} Publish
+  
+  %br/
+
+{% endblock %}
