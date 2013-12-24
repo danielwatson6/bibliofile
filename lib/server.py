@@ -1,4 +1,7 @@
-# Built-in libs
+"""Application and Controller classes and associated stuff."""
+
+__author__ = 'watsondaniel6@gmail.com (Daniel Watson)'
+
 import os
 import re
 import cgi
@@ -6,291 +9,337 @@ import json
 import urllib
 import logging
 
-# External GAE libs
 import webapp2
 import jinja2
 
-# Project libs
+from lib.xml import dicttoxml as xml
+
 from lib import utils
 from google.appengine.ext import ndb, blobstore
 from google.appengine.ext.webapp import blobstore_handlers
 
-# 3rd party libs
-from lib.xml import dicttoxml as xml
 
+__all__ = ['Request', 'Response', 'Application',
+           'BaseController', 'Controller', 'ModelController',
+           'BlobController', 'AJAXController',
+           'UploadController', 'DownloadController',
+           'render_str']
 
-
-# Initialize global variables
+# NOTE: By default, the templates directory is set to 'views'.
+# The default settings can be changed in the main script.
 template_dir = os.path.join(os.path.dirname(__file__), '..', "views")
 jinja_env    = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir))
+
 default_error_message = "Oops! An error has occured."
 
 
-# Return a string with the processed template
-def render_str(filename, **params):
-	filename = os.path.join(*filename.split('/'))
-	return jinja_env.get_template(filename).render(params)
-
-
-# Custom request object used by controllers
-class Request(webapp2.Request):
+def render_str(template, **params):
+	"""Get the rendered template in a string.
 	
-	# Add request header
+	Args:
+		template: The file's name and path.
+		**params: Variables to consider when rendering.
+	"""
+	
+	return jinja_env.get_template(template).render(params)
+
+
+class Request(webapp2.Request):
+	"""Custom Request class for controllers.
+	
+	The custom request class is used to add more
+	functionality to controllers, and to keep
+	the project's structure at the same time.
+	
+	"""
+	
 	def add_head(self, head, value):
+		"""Add a header to the request."""
 		self.headers[head] = value
 	
-	# (Overriden) Get a specified argument from the request
-	def get(self, arg, escape = False, **kw):
-		r = webapp2.Request.get(self, arg, **kw)
-		if escape and r:
-			return cgi.escape(r, quote = True)
-		return r
-	
-	# Get a specified cookie's value
 	def get_cookie(self, name, default = None):
+		"""Get a specified cookie's value."""
 		return self.cookies.get(name, default)
 	
-	# Get a list of all cookies
 	def get_cookies(self):
+		"""Get a list with every existing cookie."""
 		cookies = []
 		for i in self.cookies.items():
 			cookies.append((i[0], i[1]))
 		return cookies
 	
-	# Get the path's extension
 	def get_extension(self):
+		"""If the current path has one, get the file extension."""
 		separation = self.path.split('.')
 		if len(separation) > 1:
 			return separation[-1]
 
 
-# Custom response object used by controllers
 class Response(webapp2.Response):
+	"""Custom Response class for controllers.
 	
-	# Add response header
+	Like the custom Request class, this class
+	includes more functionality for the controllers
+	and maintains the project's structure.
+	
+	"""
+	
 	def add_head(self, head, value):
+		"""Add a header to the response."""
 		self.headers[head] = value
 	
-	# Render an html template
 	def render(self, filename, **params):
+		"""Render and display a template."""
 		html = render_str(filename, ** params)
 		self.out.write(html)
 		
-	# Delete a cooie from the client
 	def del_cookie(self, *a, **kw):
+		"""Delete a cookie from the client."""
 		self.delete_cookie(*a, **kw)
 	
-	# Set the output content type
 	def set_content(self, t):
+		"""Shortcut to set the Content-Type header."""
 		self.headers["Content-Type"] = t
 
 
-# Application class
 class Application(webapp2.WSGIApplication):
+	"""Application class.
 	
-	# Initialize the custom request/response classes
+	An application instance is created in the main script,
+	where settings may also be configured.
+	
+	Unlike the default Application class, this class
+	also handles the mapping of paths to controllers.
+	
+	"""
+	
+	# The custom Request and Response classes.
 	request_class = Request
 	response_class = Response
 	
-	# Application initializing
+	# NOTE: Unlike the default Application class, this will not
+	# initialize the application (see initialize() method). This
+	# only handles the mapping of classes to their paths.
 	def __init__(self, controllers):
-		self._tuples = []
+		self._controller_map = []
 		
 		for c in controllers:
 			
-			# Check if routhing path exists
-			if c._path:
-				current = c._path
-			elif c.__doc__:
+			# Check if a path is already specified:
+			if c.__doc__:
 				current = c.__doc__
 			else:
-				raise MissingPathError("No path was found for class `%s`!" % c.__name__)
+				
+				# Set a default path instead:
+				current = '/' + utils.lowercase(c.__name__)
+				if c._supports_model: current += 's'
 			
-			# Add maps for classes that support models
+			# Add the mappings:
+			self._controller_map.append((current + r'(?:\.(.+))?', c)) # Index page (extension allowed).
+			
+			# Extra maps for controllers linked to models:
 			if c._supports_model and not c._blob_class:
-				self._tuples.append((current + r'/new', c))
-				self._tuples.append((current + r'/([0-9]+)(?:\.(.+))?', c))
-			self._tuples.append((current, c))
+				self._controller_map.append((current + r'/new', c)) # Create page.
+				self._controller_map.append((current + r'/([0-9]+)(?:\.(.+))?', c)) # Show page (extension allowed).
+				self._controller_map.append((current + r'/([0-9]+)/edit', c)) # Edit page.
 	
-	# Update jinja options
+	
 	def set_jinja_options(self, **kw):
+		"""Change any Jinja2 options."""
 		global jinja_env
 		jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir), **kw)
 	
 	def set_default_error_msg(self, msg):
+		"""Set a default error message for error pages."""
 		global default_error_message
 		default_error_message = msg
 	
-	# Running script
 	def initialize(self, **kw):
-		webapp2.WSGIApplication.__init__(self, self._tuples, **kw)
+		"""Actually initialize the Application instance."""
+		super(Application, self).__init__(self._controller_map, **kw)
 
 
-# Base request handler
 class BaseController(webapp2.RequestHandler):
+	"""The parent controller.
 	
-	# Handler path. Override or set as class doc (regex).
-	_path = None
+	Most of the new functionality of all the controllers
+	is set in this class.
 	
-	# Variable to identify if the class supports a model
+	"""
+	
+	# The Application class uses this to determine whether to add
+	# the extra mappings for controllers linked to models.
 	_supports_model = False
 	
-	# Variable to identify if the class supports blob serving
+	# Upload and download classes are model-supporting, but do not
+	# need the extra mappings.
 	_blob_class = False
 	
 	
 	### Methods child classes may override:
 	
-	# If not authorized, throw a 401 error
 	def authorized(self):
+		"""If not authorized, send a 401 error."""
 		return True
 	
-	# When showing the index.html page
 	def index(self, *a):
+		"""When showing the index.html page."""
 		pass
 	
-	# Before any request
 	def init(self, *a):
+		"""Before any and all requests."""
 		pass
+	
 	
 	### RESTful methods:
+	
 	def get(self, *a):
+		"""Handle GET requests."""
 		self.init(*a)
+	
 	def post(self, *a):
+		"""Handle POST requests."""
 		self.init(*a)
+	
 	def put(self, *a):
+		"""Handle PUT requests."""
 		self.init(*a)
+	
 	def delete(self, *a):
-		self.init(*a)
-	def head(self, *a):
-		self.init(*a)
-	def options(self, *a):
-		self.init(*a)
-	def trace(self, *a):
+		"""Handle DELETE requests."""
 		self.init(*a)
 	
 	
-	# Default actions
+	### Functional methods:
+	
 	def initialize(self, *a, **kw):
-		webapp2.RequestHandler.initialize(self, *a, **kw)
+		"""Default actions."""
+		super(BaseController, self).initialize(*a, **kw)
 		
-		# Extension detector
-		self.format = self.request.get_extension()
-		
-		# Set the variable-like name for the class
+		# Set the variable-like name for the class:
 		self._name = utils.lowercase(self.__class__.__name__)
 		
-		# Arguments to consider when rendering templates
+		# Arguments to consider when rendering templates:
 		self._params = {}
 		
-		# Miscellaneous flags
+		# Miscellaneous flags:
 		self._flags = {
 			"render": True,
 		}
 	
-	# Get a flag's value
 	def get_flag(self, f):
+		"""Get the specified flag's value."""
 		try:
 			return self._flags[f]
 		except KeyError:
-			raise UnknownFlagError("Flag not found: `%s`" % f)
+			logging.exception("Unknown flag: `%s`" % f)
+			raise
 	
-	# Set a flag's value
 	def set_flag(self, f, value):
+		"""Change a flag's value, or add a new flag."""
 		self._flags[f] = value
 		return value
 	
-	# Return a dict with results from all arguments in the page
 	def get_data(self, *a):
+		"""Fetch arguments and their values from the request."""
 		return {i: self.request.get(i) for i in list(a)}
 	
-	# Add arguments to consider when rendering the page	
 	def send_data(self, data = {}, **kw):
-		self._params = dict(dict(kw).items() + data.items())
+		"""Add arguments to consider when rendering the page."""
+		self._params = dict(self._params.items() + data.items() + dict(kw).items())
 	
-	# Render dict as json
 	def render_json(self, d):
+		"""Render and display a data structure as JSON."""
 		self.set_flag("render", False)
 		self.response.headers["Content-Type"] = "application/json"
 		json_txt = json.dumps(d)
 		self.response.out.write(json_txt)
 	
-	# Render dict as xml
 	def render_xml(self, d):
+		"""Render and display a data structure as XML."""
 		self.set_flag("render", False)
 		self.response.headers["Content-Type"] = "application/xml"
 		xml_txt = xml.dicttoxml(d)
 		self.response.out.write(xml_txt)
 	
-	# Overriden method to handle errors.
-	# This allows custom error pages.
 	def handle_exception(self, exception, debug):
+		"""Custom exception handling to support styled error pages."""
 		logging.exception(exception)
 		if isinstance(exception, webapp2.HTTPException):
 			error_code = exception.code
 		else:
 			error_code = 500
+		
+		# Check if an error message is set:
 		try:
 			error_msg = self._params["error_msg"]
 			self.response.render('error/default_error.html',
 		                         status = error_code,
 		                         message = error_msg)
 		except KeyError:
+			
+			# Use the default message instead.
+			# TO-DO: Add default messages for HTTP error codes.
 			self.response.render('error/default_error.html',
 		                         status = error_code,
 		                         message = default_error_message)
 		
 		self.response.set_status(error_code)
 	
-	# Overriden method to raise the error
-	# instead of just setting status.
-	# This fixes a bug where the error page won't display.
+	
+	# NOTE: This fixes a bug where the error page won't display,
+	# by not setting the response status at once.
 	def error(self, code, message = default_error_message):
+		"""Custom error sending to support styled error pages."""
 		self.send_data(error_msg = message)
 		webapp2.abort(code)
 
-# Class for simple pages
 class Controller(BaseController):
+	"""Controller for simple pages.
 	
-	# Handle GET requests
+	Default controllers only include a home page.
+	
+	"""
+	
 	def get(self, *a):
-		BaseController.get(self, *a)
-		if not self.authorized():
-			self.error(401, message="Oops! Access has been denied to this page.")
+		"""Handle GET requests.
+		This calls the authorized() and index() methods.
+		"""
+		super(Controller, self).get(*a)
 		
-		# Actions from index method
+		# Check for authorization:
+		if not self.authorized():
+			self.error(401)
+		
+		# Actions from index method:
 		self.index(*a)
 		
-		# Check if render is on
+		# Check if render flag is on:
 		if self._flags["render"]:
-			self.response.render(self._name + '/index.html', ** self._params)
-	
-	# Handle POST requests
-	def post(self, *a):
-		BaseController.post(self, *a)
-		self.custom_post(*a)
-	
-	# Implementable
-	def custom_post(self, *a):
-		pass
+			self.response.render(self._name + '/index.html', **self._params)
 
 
-# Class for model-supporting pages
 class ModelController(BaseController):
+	"""Controller with full model support.
 	
-	# Model-supporting verification
+	Model Controllers include index and new pages,
+	as well as show and edit pages for each resource.
+	
+	"""
 	_supports_model = True
 	
-	# Model that the class supports
+	# Model that the class supports:
 	model = None
 	
-	# Handle GET requests
+	
 	def get(self, *a):
+		"""Handle GET requests.
+		This will call the appropriate method
+		depending on the current page.
+		"""
+		super(ModelController, self).get(*a)
 		
-		# Super
-		BaseController.get(self, *a)
-		
-		# Do appropriate actions
+		# Select mode and use corresponding methods:
 		mode = self.get_mode()
 		if mode == "index":
 			self.index()
@@ -300,9 +349,11 @@ class ModelController(BaseController):
 		elif mode == "show":
 			self.show(*a)
 		
-		# Display the correct page
-		self.render_appropriate(** self._params)
+		# Check if render flag is on:
+		if self._flags["render"]:
+			self.render_appropriate(mode, **self._params)
 	
+	# TO-DO: Major edit:
 	def post(self, *a):
 		BaseController.post(self, *a)
 		
@@ -314,62 +365,24 @@ class ModelController(BaseController):
 			self.redirect('/%ss/%s' % (self._name, new_entity.key.id()))
 		else:
 			self.new()
-			self.render_appropriate(** self._params)
+			self.render_appropriate(**self._params)
 	
-	# Render appropriate template
-	def render_appropriate(self, **params):
-		
-		# Check if render is on
-		if not self._flags["render"]:
-			return
-		
-		# Index page
-		if self.get_mode() == "index":
-			self.response.render(self._name + '/index.html', ** params)
-		
-		# Resource page
-		elif self.get_mode() == "show":
-			
-			resource = self.get_resource()
-			self.response.render(self._name + '/show.html', resource = resource, ** params)
-		
-		# Other pages
-		else:
-			self.response.render(self._name + '/' + self.get_mode() + '.html', ** params)
-	
-	# In "show" mode
-	def get_resource(self):
-		path_cut = self.request.path.split('/')[-1].split('.')[0]
-		return ndb.Key(self.model.__name__, int(path_cut)).get()
-	
-	### Methods child classes may override:
-	
-	# When displaying new.html
-	def new(self):
+	# TO-DO (with post() method):
+	def put(self, *a):
 		pass
 	
-	# When displaying show.html
-	def show(self, *a):
-		pass
+	def delete(self, *a):
+		"""Handle DELETE requests.
+		Will destroy the current resource.
+		"""
+		resource = self.get_resource()
+		resource.destroy()
 	
-	# When doing a POST request
-	def create(self):
-		pass
-	
-	# When doing a PUT request
-	def edit(self, *a):
-		pass
-	
-	# When getting the resources on index mode
-	def get_resources(self, *a):
-		r = self.model.all()
-		self.send_data(resources = r)
-	
-	### End
-	
-	
-	# Get the correct page
 	def get_mode(self):
+		"""Get the mode string depending on the current page.
+		Used in get() and render_appropriate() to select the
+		appropriate methods and templates.
+		"""
 		path = self.request.path
 		if path[:-1] == '/' + self._name or path[:-1] == '/' + self._name + 's':
 			return "index"
@@ -377,28 +390,124 @@ class ModelController(BaseController):
 			return "show"
 		else:
 			return path.split('/')[-1]
+	
+	def render_appropriate(self, mode, **params):
+		"""Render and display the appropriate template."""
+		
+		# Index page:
+		if mode == "index":
+			resources = self.get_resources()
+			self.response.render(self._name + '/index.html', resources = resources, **params)
+		
+		# Resource page:
+		elif mode == "show":
+			resource = self.get_resource()
+			if resource:
+				self.response.render(self._name + '/show.html', resource = resource, **params)
+			else:
+				self.error(404)
+		
+		# Resource edit page:
+		elif mode == "edit":
+			resource = self.get_resource()
+			if resource:
+				self.response.render(self._name + '/edit.html', resource = resource, **params)
+			else:
+				self.error(404)
+		
+		# Any other page:
+		else: self.response.render(self._name + '/' + mode + '.html', **params)
+	
+	def get_resource(self):
+		"""In show and edit mode, get the entity from the current path."""
+		mode = self.get_mode()
+		
+		# Limit to show and edit:
+		assert mode in ["show", "edit"]
+		
+		# Extract the id from the path and get the entity:
+		path_cut = self.request.path.split('/')
+		if mode == "show": path_cut = path_cut[-1]
+		elif mode == "edit": path_cut = path_cut[-2]
+		entity_id = int(path_cut.split('.')[0])
+		
+		return ndb.Key(self.model.__name__, entity_id).get()
+	
+	
+	### Methods child classes may override:
+	
+	def new(self):
+		"""When displaying new.html."""
+		pass
+	
+	def create(self):
+		"""When creating an entity.
+		Called on a POST request.
+		"""
+		pass
+	
+	def show(self, *a):
+		"""When displaying show.html."""
+		pass
+	
+	def edit(self, *a):
+		"""When displaying edit.html."""
+		pass
+	
+	def update(self, *a):
+		"""When modifying an entity.
+		Called on a PUT request.
+		"""
+		pass
+	
+	def get_resources(self):
+		"""Get the resources from the linked model.
+		Called when displaying index.html.
+		"""
+		return self.model.all()
 
-# Regular class for blob-serving controllers
+
+# TO-DO: Implement this on the default Model Controller class.
+# TO-DO: Add support for multiple blobs.
 class BlobController(ModelController):
+	"""Model Controller with blob support.
+	
+	BlobController classes are only used to link with the model
+	and to instruct the use of the Upload Controller.
+	
+	"""
 	
 	def get(self, *a):
+		"""Handle GET requests.
+		This will always send the upload url for the HTML form.
+		"""
 		upload_url = blobstore.create_upload_url('/%ss/upload' % self._name)
 		self.send_data(upload_url = upload_url)
-		ModelController.get(self, *a)
+		super(BlobController, self).get(*a)
 	
-	# Overriden: only do default stuff
-	# The UploadController class takes care of the procedure.
 	def post(self, *a):
+		"""Handle POST requests.
+		Since the Upload Controller handles the POST requests,
+		nothing is done here.
+		"""
 		BaseController.post(self, *a)
 
 
-# Upload class for blob-serving controllers
+# TO-DO: Major edit along ModelController's POST and PUT.
+# TO-DO: Support for PUT requests.
 class UploadController(blobstore_handlers.BlobstoreUploadHandler, ModelController):
+	"""Controller that handles POST requests for the Blob Controller.
 	
+	The UploadController classes require a link with their Blob Controller.
+	
+	"""
 	_blob_class = True
+	
+	# Controller that the class supports:
 	default_class = None
 	
 	def upload(self):
+		"""Upload a blob to the Blobstore."""
 		try:
 			return self.get_uploads()[0]
 		except IndexError: pass
@@ -406,11 +515,9 @@ class UploadController(blobstore_handlers.BlobstoreUploadHandler, ModelControlle
 	def init(self):
 		self.model = self.default_class.model
 	
-	# On GET request
 	def get(self, *a):
 		self.error(405)
 	
-	# On POST request
 	def post(self, *a):
 		BaseController.post(self, *a)
 		
@@ -429,7 +536,7 @@ class UploadController(blobstore_handlers.BlobstoreUploadHandler, ModelControlle
 				del c['blob']
 				
 				# Use current arguments left to create the model
-				new_entity = self.model(** c)
+				new_entity = self.model(**c)
 				new_entity.put()
 				self.redirect('/%ss/%s' % (self._name, new_entity.key.id()))
 			else:
@@ -440,14 +547,21 @@ class UploadController(blobstore_handlers.BlobstoreUploadHandler, ModelControlle
 			self.redirect('/%ss/new' % self._name)
 
 
-# Upload class for blob-serving controllers
+# TO-DO: Use a single download controller for everything,
+# instead of having one per Blob Controller.
 class DownloadController(blobstore_handlers.BlobstoreDownloadHandler, ModelController):
+	"""Controller that handles file downloads.
 	
+	Download Controllers also require a link with their Blob Controller.
+	
+	"""
 	_blob_class = True
+	
+	# Controller that the class supports:
 	default_class = None
 	
-	# Download files from blobstore
 	def download(self):
+		"""When downloading files from the Blobstore."""
 		pass
 	
 	def init(self, *a):
@@ -461,39 +575,52 @@ class DownloadController(blobstore_handlers.BlobstoreDownloadHandler, ModelContr
 		self.send_blob(blob_info)
 
 
-# Controller for asynchronous requests
 class AJAXController(BaseController):
+	"""Controller for AJAX requests
+	
+	AJAX Controllers don't include any templates.
+	
+	"""
+	
 	def initialize(self, *a, **kw):
 		BaseController.initialize(self, *a, **kw)
 		self._flags["render"] = False
 	
-	# Shortcut for output
-	def puts(self, s):
-		self.response.out.write(s)
 	
-	# Overridables
-	def GET(self, *a): pass
-	def POST(self, *a): pass
-	def PUT(self, *a): pass
-	def DELETE(self, *a): pass
+	### Methods child classes may override:
 	
-	# Call overridables
+	def GET(self, *a):
+		"""Actions for GET requests."""
+		pass
+	
+	def POST(self, *a):
+		"""Actions for POST requests."""
+		pass
+	
+	def PUT(self, *a):
+		"""Actions for PUT requests."""
+		pass
+	
+	def DELETE(self, *a):
+		"""Actions for DELETE requests."""
+		pass
+	
+	
+	### Add the methods above to the default ones:
+	
 	def get(self, *a):
-		BaseController.get(self, *a)
+		super(AJAXController, self).get(*a)
 		self.GET(*a)
+	
 	def post(self, *a):
-		BaseController.post(self, *a)
+		super(AJAXController, self).post(*a)
 		self.POST(*a)
+	
 	def put(self, *a):
-		BaseController.put(self, *a)
+		super(AJAXController, self).put(*a)
 		self.PUT(*a)
+	
 	def delete(self, *a):
-		BaseController.delete(self, *a)
+		super(AJAXController, self).delete(*a)
 		self.DELETE(*a)
-
-# Error thrown by controllers when no routing path is found
-class MissingPathError(Exception): pass
-
-# Error thrown by controllers when a requested flag is not found
-class UnknownFlagError(Exception): pass
 
