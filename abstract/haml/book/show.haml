@@ -2,7 +2,7 @@
 
 {% block content %}
 %a.btn.btn-primary.bibliofile-corner-btn{href: "{{ resource.serve_uri() }}"} Download
-%a.btn.btn-primary.pull-right.bibliofile-corner-btn{href: "#"} Edit
+%a.btn.btn-primary.pull-right.bibliofile-corner-btn{href: "{{ resource.edit_uri() }}"} Edit
 %h1 {{ resource.title }}
 %a{href: "/books"} « Back to book index
 %hr/
