@@ -5,21 +5,19 @@
 %a.btn.btn-primary.bibliofile-corner-btn{href: "/books/new"} New book
 %h1 Book Index
 %hr/
-{% if resources.count() == 0 %}
-%b No books found.
-{% endif %}
 
 {% for resource in resources %}
 .media
-  %a.pull-left{href: "{{ resource.uri() }}"}
-    %img.media-object.img-thumbnail{height: "128", src: "{{ resource.book_img }}", width: "128"}/
-  .media-body
-    %a.plain{href: "{{ resource.uri() }}"}
-      %h3.media-heading 
-    %p
-      %b {{ resource.title }}
-      %span - by {{ resource.author }}
-    %p {{ resource.small_description() }}
+	%button.pull-right.btn.btn-small.btn-default{data: {method: "DELETE", action: "{{ resource.uri() }}"}} delete
+	%a.pull-left{href: "{{ resource.uri() }}"}
+	%img.media-object.img-thumbnail{height: "128", src: "{{ resource.book_img }}", width: "128"}/
+	.media-body
+	%a.plain{href: "{{ resource.uri() }}"}
+		%h3.media-heading 
+	%p
+		%b {{ resource.title }}
+		%span - by {{ resource.author }}
+	%p {{ resource.small_description() }}
 %hr/
 {% endfor %}
 

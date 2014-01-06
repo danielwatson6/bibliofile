@@ -2,16 +2,13 @@
 book_extensions = ['azw', 'azw1', 'azw4', 'epub', 'kf8', 'mobi', 'pdb', 'pdf', 'prc', 'tpz']
 img_extensions = ['jpg', 'jpeg', 'gif', 'png']
 
-
 # Method called in template on submit
 validate_upload = ->
 	
-	# Default fields
+	# Required fields
 	fields = ['#title',
 			  '#author',
 			  '#genre',
-			  '#description',
-			  '#author_description',
 			  '#blob']
 	
 	# Special fields

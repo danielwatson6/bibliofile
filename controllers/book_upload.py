@@ -30,7 +30,8 @@ class Book(UploadController):
 				  (BookModel.author_description, data["author_description"]),
 				  (BookModel.blob_key, data["blob"])]
 		
-		valid_form = BookModel.valid_form(fields, data["blob"])
+		# TO-DO!!!
+		valid_form = True
 		
 		if valid_form:
 			# HTML-safe
