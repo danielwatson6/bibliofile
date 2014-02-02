@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 
 {% block content %}
-%a.btn.btn-primary.bibliofile-corner-btn{href: "{{ resource.serve_uri() }}"} Download
-%a.btn.btn-primary.pull-right.bibliofile-corner-btn{href: "{{ resource.edit_uri() }}"} Edit
+%a.btn.btn-primary.bibliofile-corner-btn{href: "{{ resource.download_link() }}"} Download
+%a.btn.btn-primary.pull-right.bibliofile-corner-btn{href: "{{ resource.edit_link() }}"} Edit
 %h1 {{ resource.title }}
 %a{href: "/books"} « Back to book index
 %hr/
@@ -28,7 +28,7 @@
     %h4 Info:
     %p Genre: {{ resource.genre }}
     %hr/
-    %a{href: "{{ resource.serve_uri() }}"}
+    %a{href: "{{ resource.download_link() }}"}
       Download
     %span.muted ({{ resource.get_size() }})
     

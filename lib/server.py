@@ -1,7 +1,3 @@
-"""Application and Controller classes and associated stuff."""
-
-__author__ = 'watsondaniel6@gmail.com (Daniel Watson)'
-
 import os
 import re
 import cgi
@@ -19,28 +15,13 @@ from google.appengine.ext import ndb, blobstore
 from google.appengine.ext.webapp import blobstore_handlers
 
 
-__all__ = ['Request', 'Response', 'Application',
-           'BaseController', 'Controller', 'ModelController',
-           'BlobController', 'AJAXController',
-           'UploadController', 'DownloadController',
-           'render_str']
-
-# NOTE: By default, the templates directory is set to 'views'.
-# The default settings can be changed in the main script.
+# Jinja2 variables
 template_dir = os.path.join(os.path.dirname(__file__), '..', "views")
 jinja_env    = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir))
 
-default_error_message = "Oops! An error has occured."
-
 
 def render_str(template, **params):
-	"""Get the rendered template in a string.
-	
-	Args:
-		template: The file's name and path.
-		**params: Variables to consider when rendering.
-	"""
-	
+	"""Return a rendered Jinja2 template."""
 	return jinja_env.get_template(template).render(params)
 
 
@@ -113,7 +94,7 @@ class Application(webapp2.WSGIApplication):
 	
 	"""
 	
-	# The custom Request and Response classes.
+	# Initialize the custom Request and Response classes.
 	request_class = Request
 	response_class = Response
 	
@@ -148,11 +129,6 @@ class Application(webapp2.WSGIApplication):
 		"""Change any Jinja2 options."""
 		global jinja_env
 		jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir), **kw)
-	
-	def set_default_error_msg(self, msg):
-		"""Set a default error message for error pages."""
-		global default_error_message
-		default_error_message = msg
 	
 	def initialize(self, **kw):
 		"""Actually initialize the Application instance."""
@@ -195,19 +171,19 @@ class BaseController(webapp2.RequestHandler):
 	
 	def get(self, *a):
 		"""Handle GET requests."""
-		self.init(*a)
+		self.init()
 	
 	def post(self, *a):
 		"""Handle POST requests."""
-		self.init(*a)
+		self.init()
 	
 	def put(self, *a):
 		"""Handle PUT requests."""
-		self.init(*a)
+		self.init()
 	
 	def delete(self, *a):
 		"""Handle DELETE requests."""
-		self.init(*a)
+		self.init()
 	
 	
 	### Functional methods:
@@ -219,8 +195,7 @@ class BaseController(webapp2.RequestHandler):
 		# Set the variable-like name for the class:
 		self._name = utils.lowercase(self.__class__.__name__)
 		
-		# Arguments to consider when rendering templates:
-		self._params = {}
+		self._params = {}		# Params for the views
 		
 		# Miscellaneous flags:
 		self._flags = {
@@ -240,13 +215,14 @@ class BaseController(webapp2.RequestHandler):
 		self._flags[f] = value
 		return value
 	
+	# TO-DO: Automate this based on form
 	def get_data(self, *a):
 		"""Fetch arguments and their values from the request."""
 		return {i: self.request.get(i) for i in list(a)}
 	
-	def send_data(self, data = {}, **kw):
-		"""Add arguments to consider when rendering the page."""
-		self._params = dict(self._params.items() + data.items() + dict(kw).items())
+	def send_data(self, **params):
+		"""Add variables to the views."""
+		self._params = dict(self._params.items() + dict(params).items())
 	
 	def render_json(self, d):
 		"""Render and display a data structure as JSON."""
@@ -261,38 +237,6 @@ class BaseController(webapp2.RequestHandler):
 		self.response.headers["Content-Type"] = "application/xml"
 		xml_txt = xml.dicttoxml(d)
 		self.response.out.write(xml_txt)
-	
-	def handle_exception(self, exception, debug):
-		"""Custom exception handling to support styled error pages."""
-		logging.exception(exception)
-		if isinstance(exception, webapp2.HTTPException):
-			error_code = exception.code
-		else:
-			error_code = 500
-		
-		# Check if an error message is set:
-		try:
-			error_msg = self._params["error_msg"]
-			self.response.render('error/default_error.html',
-		                         status = error_code,
-		                         message = error_msg)
-		except KeyError:
-			
-			# Use the default message instead.
-			# TO-DO: Add default messages for HTTP error codes.
-			self.response.render('error/default_error.html',
-		                         status = error_code,
-		                         message = default_error_message)
-		
-		self.response.set_status(error_code)
-	
-	
-	# NOTE: This fixes a bug where the error page won't display,
-	# by not setting the response status at once.
-	def error(self, code, message = default_error_message):
-		"""Custom error sending to support styled error pages."""
-		self.send_data(error_msg = message)
-		webapp2.abort(code)
 
 class Controller(BaseController):
 	"""Controller for simple pages.
@@ -312,7 +256,7 @@ class Controller(BaseController):
 			self.error(401)
 		
 		# Actions from index method:
-		self.index(*a)
+		self.index()
 		
 		# Check if render flag is on:
 		if self._flags["render"]:
@@ -333,31 +277,47 @@ class ModelController(BaseController):
 	
 	
 	def get(self, *a):
-		"""Handle GET requests.
-		This will call the appropriate method
-		depending on the current page.
-		"""
+		"""Handle GET requests."""
 		super(ModelController, self).get(*a)
 		
 		# Select mode and use corresponding methods:
 		mode = self.get_mode()
 		if mode == "index":
-			self.index()
 			self.get_resources()
+			self.index()
 		elif mode == "new":
 			self.new()
 		elif mode == "show":
+			resource = self.get_resource(list(a)[0])
 			self.show(*a)
+		elif mode == "edit":
+			self.get_resource(list(a)[0])
+			self.edit(*a)
 		
 		# Check if render flag is on:
 		if self._flags["render"]:
 			self.render_appropriate(mode, **self._params)
 	
-	# TO-DO: Major edit:
 	def post(self, *a):
+		"""Handle POST requests."""
 		BaseController.post(self, *a)
 		
-		# Check if successful
+		# Check if the request is actually another method
+		if self.intercept(*a): return
+		
+		# New code
+		inputs = self.model.form_inputs
+		assert inputs is not None
+		data = self.get_data(*inputs)
+		
+		try:
+			new_entity = self.model(** data)
+		except:
+			self.new()
+			self.render_appropriate(**self._params)
+		return
+		
+		# Old code
 		c = self.create()
 		if c:
 			new_entity = self.model(** c)
@@ -367,16 +327,20 @@ class ModelController(BaseController):
 			self.new()
 			self.render_appropriate(**self._params)
 	
-	# TO-DO (with post() method):
+	# TO-DO!!!
 	def put(self, *a):
 		pass
 	
+	# TO-DO: Refresh the index page; resource still 'appears' after redirect.
 	def delete(self, *a):
 		"""Handle DELETE requests.
 		Will destroy the current resource.
 		"""
-		resource = self.get_resource()
+		self._flags["render"] = False
+		resource = self.get_resource(list(a)[0])
 		resource.destroy()
+		logging.info("Deleted resource. Redirecting to /%ss" % self._name)
+		self.redirect('/%ss' % self._name)
 	
 	def get_mode(self):
 		"""Get the mode string depending on the current page.
@@ -401,38 +365,38 @@ class ModelController(BaseController):
 		
 		# Resource page:
 		elif mode == "show":
-			resource = self.get_resource()
-			if resource:
-				self.response.render(self._name + '/show.html', resource = resource, **params)
-			else:
-				self.error(404)
+			self.response.render(self._name + '/show.html', **params)
 		
 		# Resource edit page:
 		elif mode == "edit":
-			resource = self.get_resource()
-			if resource:
-				self.response.render(self._name + '/edit.html', resource = resource, **params)
-			else:
-				self.error(404)
+			self.response.render(self._name + '/edit.html', **params)
 		
 		# Any other page:
 		else: self.response.render(self._name + '/' + mode + '.html', **params)
 	
-	def get_resource(self):
-		"""In show and edit mode, get the entity from the current path."""
-		mode = self.get_mode()
+	def get_resource(self, resource_id):
+		"""Get the entity from the given id, stop if it doesn't exist,
+		otherwise add it to the template."""
 		
-		# Limit to show and edit:
-		assert mode in ["show", "edit"]
-		
-		# Extract the id from the path and get the entity:
-		path_cut = self.request.path.split('/')
-		if mode == "show": path_cut = path_cut[-1]
-		elif mode == "edit": path_cut = path_cut[-2]
-		entity_id = int(path_cut.split('.')[0])
-		
-		return ndb.Key(self.model.__name__, entity_id).get()
+		resource = ndb.Key(self.model.__name__, int(resource_id)).get()
+		if not resource:
+			return self.error(404)
+		self._params['resource'] = resource
+		return resource
 	
+	def intercept(self, *a):
+		"""Check for a hidden form to perform appropriate method.
+		Called by post().
+		"""
+		data = self.get_data("_method")
+		if data['_method'] == 'PUT':
+			logging.info("Intercept: PUT" )
+			self.put(*a)
+			return True
+		if data['_method'] == 'DELETE':
+			logging.info("Intercept: DELETE")
+			self.delete(*a)
+			return True
 	
 	### Methods child classes may override:
 	
@@ -491,6 +455,7 @@ class BlobController(ModelController):
 		nothing is done here.
 		"""
 		BaseController.post(self, *a)
+		if self.intercept(*a): return
 
 
 # TO-DO: Major edit along ModelController's POST and PUT.
@@ -521,30 +486,19 @@ class UploadController(blobstore_handlers.BlobstoreUploadHandler, ModelControlle
 	def post(self, *a):
 		BaseController.post(self, *a)
 		
-		# Check if successful
-		c = self.create()
-		if c:
+		form = self.model.form
+		if form is not None:
+			data = self.get_data(*form.keys())
 			
-			# Try to upload
-			upload = self.upload()
-			if upload:
-				
-				# Get blob reference
-				c['blob_key'] = str(upload.key())
-				
-				# Delete useless blob argument
-				del c['blob']
-				
-				# Use current arguments left to create the model
-				new_entity = self.model(**c)
-				new_entity.put()
-				self.redirect('/%ss/%s' % (self._name, new_entity.key.id()))
-			else:
-				self.redirect('/%ss/new' % self._name)
+		upload = self.upload()
+		if upload:
+			data['blob'] = str(upload.key())
+			new_entity = self.model(validate=True, **data)
+			new_entity.put()
+			
+			return self.redirect('/%ss/%s' % (self._name, new_entity.get_id()))
 		
-		# Bounce back if form did not pass
-		else:
-			self.redirect('/%ss/new' % self._name)
+		self.redirect('/%ss/new' % self._name)
 
 
 # TO-DO: Use a single download controller for everything,
@@ -567,10 +521,10 @@ class DownloadController(blobstore_handlers.BlobstoreDownloadHandler, ModelContr
 	def init(self, *a):
 		self.model = self.default_class.model
 	
-	def get(self, resource):
+	def get(self, resource, *a):
 		BaseController.get(self, resource)
 		entity = self.model.get_by_id(long(resource))
-		resource = str(urllib.unquote(entity.blob_key))
+		resource = str(urllib.unquote(entity.blob))
 		blob_info = blobstore.BlobInfo.get(resource)
 		self.send_blob(blob_info)
 

@@ -8,11 +8,11 @@
 
 {% for resource in resources %}
 .media
-	%button.pull-right.btn.btn-small.btn-default{data: {method: "DELETE", action: "{{ resource.uri() }}"}} delete
-	%a.pull-left{href: "{{ resource.uri() }}"}
-	%img.media-object.img-thumbnail{height: "128", src: "{{ resource.book_img }}", width: "128"}/
+	%button.pull-right.btn.btn-small.btn-default{data: {method: "DELETE", action: "{{ resource.link() }}"}} delete
+	%a.pull-left{href: "{{ resource.link() }}"}
+		%img.media-object.img-thumbnail{height: "128", src: "{{ resource.book_img }}", width: "128"}/
 	.media-body
-	%a.plain{href: "{{ resource.uri() }}"}
+	%a.plain{href: "{{ resource.link() }}"}
 		%h3.media-heading 
 	%p
 		%b {{ resource.title }}
