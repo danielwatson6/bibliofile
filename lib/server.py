@@ -1,3 +1,12 @@
+"""
+
+TO-DO's:
+- Make the put() code in both Model and BlobModel.
+- Fix the delete() issue (the page needs to be refreshed twice to see changes)
+
+"""
+
+
 import os
 import re
 import cgi
@@ -299,33 +308,18 @@ class ModelController(BaseController):
 			self.render_appropriate(mode, **self._params)
 	
 	def post(self, *a):
-		"""Handle POST requests."""
 		BaseController.post(self, *a)
 		
-		# Check if the request is actually another method
-		if self.intercept(*a): return
-		
-		# New code
-		inputs = self.model.form_inputs
-		assert inputs is not None
-		data = self.get_data(*inputs)
+		form = self.model.form
+		if form is not None:
+			data = self.get_data(*form.keys())
 		
 		try:
-			new_entity = self.model(** data)
-		except:
-			self.new()
-			self.render_appropriate(**self._params)
-		return
-		
-		# Old code
-		c = self.create()
-		if c:
-			new_entity = self.model(** c)
+			new_entity = self.model(validate=True, **data)
 			new_entity.put()
-			self.redirect('/%ss/%s' % (self._name, new_entity.key.id()))
-		else:
-			self.new()
-			self.render_appropriate(**self._params)
+			return self.redirect('/%ss/%s' % (self._name, new_entity.get_id()))
+		except:		# TO-DO: Add proper handling
+			self.redirect('/%ss/new' % self._name)
 	
 	# TO-DO!!!
 	def put(self, *a):
