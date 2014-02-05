@@ -5,5 +5,5 @@ class Home(Controller):
 	
 	# For now, on GET request it will redirect
 	# since the index page is useless
-	def index(self):
+	def index(self, *a):
 		self.redirect('/books')
